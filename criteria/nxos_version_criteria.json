@@ -1,0 +1,12 @@
+{
+"type": "object",
+"patternProperties": {
+         "^.*": {
+                 "type": "object",
+                 "properties": {
+                     "nxos_version":  {
+                           "type":"string",
+                           "pattern": "9.2(4)" }}}}} 
+
+
+                          

@@ -1,0 +1,35 @@
+
+{#
+ Loopback
+#}
+interface Loopback0
+ description to
+ ip address {{ router_id }} 255.255.255.255
+ no shut
+{#
+ Ospf
+#}
+router ospf 1
+ router-id {{ router_id }}
+ redistribute bgp {{ local_as }} subnets
+ network {{ ospf_network }} 0.0.0.3 area 0
+ no network 172.16.252.0 0.0.3.255 area 0
+
+{#
+  BGP
+#}
+router bgp {{ local_as }}
+ bgp router-id {{ router_id }}
+ bgp log-neighbor-changes
+ neighbor {{ peer_ip }} remote-as {{ remote_as }}
+!
+ address-family ipv4
+  {% for item in networks %}
+  network {{ item.remote_ip }} mask {{ item.mask }}
+  {% endfor %}
+  neighbor {{ peer_ip }} activate
+  redistribute ospf 1 
+ exit-address-family
+
+ 
+  

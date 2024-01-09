@@ -1,0 +1,27 @@
+- name: Show version
+  ansible.utils.cli_parse:
+    command: show version
+    parser:
+      name: ansible.netcommon.pyats
+  register: sh_version
+
+- name: Collect Version Data
+  ansible.builtin.set_fact:
+    nxos_version: "{{ sh_version ['parsed']['platform']['software']['system_version'] }}"
+
+- name: display value of show version
+  ansible.builtin.debug:
+    var: nxos_version
+
+- name: validate Show Version return_code state
+  ansible.utils.validate:
+    data: "{{ sh_version ['parsed'] }}"
+    criteria:
+      - "{{ lookup('file','../criteria/nxos_version_criteria.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  ignore_errors: true
+  register: result
+
+- name: NXOS Version Validation
+  ansible.builtin.debug:
+    var: result

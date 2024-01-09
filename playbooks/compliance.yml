@@ -1,0 +1,18 @@
+---
+- name: Compliance Check for IOS Version
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: load show_ver role
+      ansible.builtin.include_role:
+        name: ../roles/show_ver
+
+- name: Compliance Check for NTP server settings
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: load ntp role
+      ansible.builtin.include_role:
+        name: ../roles/ntp

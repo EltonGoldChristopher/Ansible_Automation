@@ -1,0 +1,29 @@
+- name: Gather NTP servers
+  cisco.nxos.nxos_ntp_global:
+    state: gathered
+  register: ntp
+
+- name: Print NTP Servers
+  ansible.builtin.debug:
+    var: ntp.gathered.servers
+
+- name: Include ntp server vars
+  ansible.builtin.include_vars:
+    file: "../ssot/compliance-ntp-servers-us.yml"
+
+- name: Use NTP resource module to overrite extra servers and add correct NTP servers 
+  cisco.nxos.nxos_ntp_global:
+      config: 
+        servers:
+          - server: "{{ ntp1 }}"
+          - server: "{{ ntp2 }}"
+      state: replaced
+  register: diff
+
+
+- name: Show the difference in json format
+  when: diff.changed
+  ansible.utils.fact_diff:
+    before: "{{ diff.before }}"
+    after: "{{ diff.after }}"
+  ignore_errors: true

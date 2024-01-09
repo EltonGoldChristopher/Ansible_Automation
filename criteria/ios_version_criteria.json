@@ -1,0 +1,12 @@
+{
+"type": "object",
+"patternProperties": {
+         "^.*": {
+                 "type": "object",
+                 "properties": {
+                     "xe_version":  {
+                           "type":"string",
+                           "pattern": "17.03.02" }}}}} 
+
+
+                          

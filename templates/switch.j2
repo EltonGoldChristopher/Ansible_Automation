@@ -1,0 +1,24 @@
+
+{#
+ Loopback
+#}
+interface Loopback0
+ description to
+ ip address {{ router_id }} 255.255.255.255
+ ip router ospf 1 area 0.0.0.0
+ no shut
+{#
+ Ospf
+#}
+router ospf 1
+ router-id {{ router_id }}
+interface e1/5-10
+ shut
+ no switchport
+interface e1/12-128
+ no shut
+
+
+ 
+
+

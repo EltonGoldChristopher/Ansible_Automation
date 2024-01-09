@@ -1,0 +1,18 @@
+---
+- name: Configure '{{ rtr }}'
+  hosts: "{{ rtr }}"
+  gather_facts: false
+
+  tasks:
+    - name: Configure NTP Configs
+      cisco.nxos.config:
+        commands:
+          - ntp server {{ item }}
+        diff_against: running
+      loop: "{{ntp_servers}}"
+
+    # Configure dist-sw02 using a Jinja2 template templates/remote.j2
+    - name: Jinja2 template for remote router
+      ansible.netcommon.cli_config:
+        config: "{{ lookup('template', '../templates/switch.j2' ) }}"
+        diff_match: line

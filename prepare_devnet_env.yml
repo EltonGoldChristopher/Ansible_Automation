@@ -1,0 +1,135 @@
+---
+- name: Prepare Lab ENV for Cisco Devnet Compliance Demo
+  hosts: dist-rtr01
+  gather_facts: false
+
+  vars:
+    ntp_servers:
+      - 192.0.2.0
+      - 192.0.2.1
+    router_id: 192.168.175.175
+    local_as: 65000
+    ospf_network: 172.16.252.0
+    peer_ip: 172.16.252.18
+    remote_as: 65001
+    networks:
+      - remote_ip: 172.6.252.0
+        mask: 255.255.255.252
+      - remote_ip: 172.16.252.16
+        mask: 255.255.255.252
+      - remote_ip: 192.168.175.175
+        mask: 255.255.255.255
+      - remote_ip: 192.168.177.177
+        mask: 255.255.255.255
+  tasks:
+    - name: Configure NTP Configs
+      cisco.ios.config:
+        commands:
+          - ntp server {{ item }}
+        diff_against: running
+      loop: "{{ ntp_servers }}"
+
+    # Configure dist-routers using a Jinja2 template templates/dist.j2
+    - name: Jinja2 template for dist routers
+      ansible.netcommon.cli_config:
+        config: "{{ lookup('template', '../templates/dist.j2' ) }}"
+        diff_match: line
+
+- name: Prepare Lab ENV for Compliance Demo
+  hosts: dist-rtr02
+  gather_facts: false
+
+  vars:
+    ntp_servers:
+      - 192.0.2.0
+      - 192.0.2.1
+    router_id: 192.168.176.176
+    local_as: 65001
+    ospf_network: 172.16.252.12
+    peer_ip: 172.16.252.17
+    remote_as: 65000
+    networks:
+      - remote_ip: 172.6.252.12
+        mask: 255.255.255.252
+      - remote_ip: 172.16.252.16
+        mask: 255.255.255.252
+      - remote_ip: 192.168.176.176
+        mask: 255.255.255.255
+
+  tasks:
+    - name: Configure NTP Configs
+      cisco.ios.config:
+        commands:
+          - ntp server {{ item }}
+        diff_against: running
+      loop: "{{ ntp_servers }}"
+
+    # Configure dist-routers using a Jinja2 template templates/dist.j2
+    - name: Jinja2 template for dist routers
+      ansible.netcommon.cli_config:
+        config: "{{ lookup('template', '../templates/dist2.j2' ) }}"
+        diff_match: line
+
+    - name: Remove dist-sw02 network from BGP
+      cisco.ios.ios_config:
+        lines:
+          - no network 192.168.178.178 mask 255.255.255.255
+        parents:
+          - router bgp 65001
+          - address-family ipv4
+
+- name: Prepare Lab ENV for Compliance Demo
+  hosts: dist-sw01
+  gather_facts: false
+
+  vars:
+    ntp_servers:
+      - 192.0.2.0
+      - 192.0.2.1
+    router_id: 192.168.177.177
+
+  tasks:
+    - name: Configure NTP Configs
+      cisco.nxos.config:
+        commands:
+          - ntp server {{ item }}
+        diff_against: running
+      loop: "{{ ntp_servers }}"
+
+    - name: Passive OPSF interface
+      cisco.nxos.config:
+        lines:
+          - no ip ospf passive-interface
+        parents: interface Ethernet1/3
+
+    - name: Passive OPSF interface
+      cisco.nxos.config:
+        lines:
+          - ip ospf passive-interface
+        parents: interface Ethernet1/4
+
+
+
+
+    # Configure dist-switches using a Jinja2 template templates/dist.j2
+    - name: Jinja2 template for dist switches/routers
+      ansible.netcommon.cli_config:
+        config: "{{ lookup('template', '../templates/switch.j2' ) }}"
+        diff_match: line
+
+- name: Prepare Lab ENV for Compliance Demo
+  hosts: dist-sw02
+  gather_facts: false
+
+  tasks:
+    - name: Passive OPSF interface
+      cisco.nxos.config:
+        lines:
+          - no ip ospf passive-interface
+        parents: interface Ethernet1/4
+
+    - name: Passive OPSF interface
+      cisco.nxos.config:
+        lines:
+          - ip ospf passive-interface
+        parents: interface Ethernet1/3
